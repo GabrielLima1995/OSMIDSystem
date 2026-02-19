@@ -27,11 +27,15 @@
 
         <div class="attribute-editor">
           <h2>Adicionar/atualizar atributo</h2>
-          <label for="attributeName">Nome do atributo</label>
-          <input id="attributeName" type="text" placeholder="ex: status_vistoria" />
+          <p><strong>Nome do atributo fixo:</strong> <code>paviment</code></p>
 
-          <label for="attributeValue">Valor do atributo</label>
-          <input id="attributeValue" type="text" placeholder="ex: revisado_2026" />
+          <label for="classifierToggle">
+            <input id="classifierToggle" type="checkbox" checked />
+            Usar campo nome_do_classificador
+          </label>
+
+          <label for="classifierName">nome_do_classificador</label>
+          <input id="classifierName" type="text" value="nome_do_classificador" />
 
           <button id="saveBtn" type="button">Salvar no osm.json</button>
           <p id="feedback"></p>
