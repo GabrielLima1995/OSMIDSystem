@@ -1,0 +1,9 @@
+{
+  "name": "osmid-system",
+  "version": "1.0.0",
+  "description": "Sistema web para visualizar e editar atributos por id_trecho_qualidade no JSON OSM",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
