@@ -8,6 +8,18 @@ const saveBtn = document.getElementById('saveBtn');
 const feedback = document.getElementById('feedback');
 
 const ATTRIBUTE_NAME = 'paviment';
+const TRECHO_COLORS = [
+  '#1f77b4',
+  '#ff7f0e',
+  '#2ca02c',
+  '#9467bd',
+  '#8c564b',
+  '#e377c2',
+  '#17becf',
+  '#bcbd22',
+  '#d62728',
+  '#7f7f7f'
+];
 
 const map = L.map('map').setView([-30.03, -51.23], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -28,12 +40,23 @@ function getFeaturesByLogradouro(logradouro) {
   return allFeatures.filter((feature) => feature.properties.logradouro === logradouro);
 }
 
-function selectTrechosByLogradouro(logradouro) {
-  const ids = getFeaturesByLogradouro(logradouro).map(
-    (feature) => feature.properties.id_trecho_qualidade
-  );
+function getColorForTrecho(trechoId) {
+  let hash = 0;
+  for (let i = 0; i < trechoId.length; i += 1) {
+    hash = (hash << 5) - hash + trechoId.charCodeAt(i);
+    hash |= 0;
+  }
 
-  ids.forEach((id) => selectedTrechos.add(id));
+  const index = Math.abs(hash) % TRECHO_COLORS.length;
+  return TRECHO_COLORS[index];
+}
+
+function toggleTrechoSelection(trechoId) {
+  if (selectedTrechos.has(trechoId)) {
+    selectedTrechos.delete(trechoId);
+  } else {
+    selectedTrechos.add(trechoId);
+  }
 }
 
 function createTrechoItem(feature) {
@@ -72,24 +95,26 @@ function renderFilteredData(logradouro, shouldFitBounds = true) {
     return;
   }
 
-  feedback.textContent = `${filtered.length} trecho(s) carregado(s).`;
+  feedback.textContent = `${filtered.length} trecho(s) carregado(s). Clique na geometria para marcar trecho a trecho.`;
 
   const latLngGroups = [];
   filtered.forEach((feature) => {
     const trechoId = feature.properties.id_trecho_qualidade;
+    const trechoColor = getColorForTrecho(trechoId);
+    const isSelected = selectedTrechos.has(trechoId);
+
     const layer = L.geoJSON(feature, {
       style: {
-        color: selectedTrechos.has(trechoId) ? '#d00' : '#005eff',
-        weight: 4
+        color: trechoColor,
+        weight: isSelected ? 8 : 5,
+        opacity: isSelected ? 1 : 0.8
       }
     }).addTo(map);
 
     layer.bindPopup(`<strong>${trechoId}</strong><br>${feature.properties.logradouro}`);
 
     layer.on('click', () => {
-      const clickedLogradouro = feature.properties.logradouro;
-      logradouroSelect.value = clickedLogradouro;
-      selectTrechosByLogradouro(clickedLogradouro);
+      toggleTrechoSelection(trechoId);
       refreshCurrentView(false);
     });
 
@@ -114,7 +139,10 @@ function refreshCurrentView(shouldFitBounds = true) {
 logradouroSelect.addEventListener('change', () => refreshCurrentView(true));
 
 selectAllBtn.addEventListener('click', () => {
-  selectTrechosByLogradouro(logradouroSelect.value);
+  const ids = getFeaturesByLogradouro(logradouroSelect.value).map(
+    (feature) => feature.properties.id_trecho_qualidade
+  );
+  ids.forEach((id) => selectedTrechos.add(id));
   refreshCurrentView(false);
 });
 
